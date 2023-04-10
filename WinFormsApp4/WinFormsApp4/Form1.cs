@@ -48,6 +48,11 @@ namespace WinFormsApp4
                     excelWorksheet.Cells[i+1 , j+1] = dataGridView1.Rows[i].Cells[j].Value;
                 }
             }
+            // Заполнение заголовков столбцов в первой строке
+            for (int j = 0; j < dataGridView1.Columns.Count; j++)
+            {
+                excelWorksheet.Cells[1, j + 1] = dataGridView1.Columns[j].HeaderText;
+            }
             excelApp.Visible = false;
             excelApp.UserControl = true;
             string path = (@"E:\User\");
@@ -199,7 +204,7 @@ namespace WinFormsApp4
             ExportToExcel();
             if (currentMileage > Probeg)
             {
-                string message = $"Внимание! Пора сделать тех. обслуживание машины! Пробег достигает {Probeg}, за последнее время было пройдено {difference} км.";
+                string message = $"Внимание! Пора сделать тех. обслуживание машины! Пробег превысил {Probeg}, за последнее время было пройдено {difference} км.";
                 bot.SendTextMessageAsync("1083342768", message);
                 
             }
