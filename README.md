@@ -6,6 +6,5 @@
 ![image](https://user-images.githubusercontent.com/80597767/230195533-a720987c-23cc-40bb-aa45-dd53368da160.png)
 
 Transferring data from datagridview to Excel
-![image](https://user-images.githubusercontent.com/80597767/230196073-8a66d812-b807-42cc-8fc3-08198e76512b.png)
+![image](https://user-images.githubusercontent.com/80597767/230850963-14f91450-dffd-428c-9b74-2e2be5c271ad.png)
 
-The column headers will also be moved later
