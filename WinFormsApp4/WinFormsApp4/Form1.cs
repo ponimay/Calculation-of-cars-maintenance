@@ -13,93 +13,102 @@ using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Microsoft.Office.Interop.Excel;
 using Excel = Microsoft.Office.Interop.Excel;
-using Application = Microsoft.Office.Interop.Excel.Application;
+using Application = Microsoft.Office.Interop.Excel.Application;                 
+using Microsoft.Office.Interop.Word;
+using Word = Microsoft.Office.Interop.Word;
+using Application1 = Microsoft.Office.Interop.Word.Application;
+using System.Security.AccessControl;
+using Document = Microsoft.Office.Interop.Word.Document;
+using static System.Windows.Forms.DataFormats;
+using System.Globalization;
+using static System.Net.Mime.MediaTypeNames;
+using Range = Microsoft.Office.Interop.Excel.Range;
 
 namespace WinFormsApp4
 {
     public partial class Form1 : Form
     {
-        public Form1()
-        {
-            InitializeComponent();
-        }
         private double coefWinter = 20; // коофицент по зиме
         private double coefSpring = 25; // коофицент по весне
         private double coefSummer = 30; // коофицент по лету
         private double coefAutumn = 22; // коофицент по осени
         private const double Probeg = 15000; // максимальный пробег
-
-        private void ExportToExcel()
+        
+        public Form1()
         {
-
-            Application excelApp = new Application();
-            // новая книга Excel
-            Workbook excelWorkbook = excelApp.Workbooks.Add();
-            // новый лист
-            Worksheet excelWorksheet = excelWorkbook.Sheets.Add();
-            // название листа
-            excelWorksheet.Name = "Данные";
-
-            // Копируем данные из dataGridView1 в Excel
-            for (int i = 0; i < dataGridView1.Rows.Count; i++)
-            {
-                for (int j = 0; j < dataGridView1.Columns.Count; j++)
-                {
-                    excelWorksheet.Cells[i+1 , j+1] = dataGridView1.Rows[i].Cells[j].Value;
-                }
-            }
-            // Заполнение заголовков столбцов в первой строке
-            for (int j = 0; j < dataGridView1.Columns.Count; j++)
-            {
-                excelWorksheet.Cells[1, j + 1] = dataGridView1.Columns[j].HeaderText;
-            }
-            excelApp.Visible = false;
-            excelApp.UserControl = true;
-            string path = (@"E:\User\");
-            string filename = "Мой Excel файл.xlsx";
-            string fullfilename = System.IO.Path.Combine(path, filename);
-            if (System.IO.File.Exists(fullfilename)) System.IO.File.Delete(fullfilename);
-            excelWorkbook.SaveAs(fullfilename, Excel.XlFileFormat.xlWorkbookDefault); //формат Excel 2007
-
-            excelWorkbook.Close(false); //false - закрыть рабочую книгу не сохраняя изменения
-            excelApp.Quit(); 
-            MessageBox.Show("Файл сохранён!", "Сохранение файла", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            InitializeComponent();
         }
-
+        
+        
         TelegramBotClient bot = new TelegramBotClient("5313774371:AAHfKFg1ylcdLT-PiF8MyBXLJG4K9i2mAbM");
+
         private void button1_Click(object sender, EventArgs e)
         {
-            dataGridView1.Rows.Clear();
-            dataGridView1.Columns.Clear();
-
-            dataGridView1.Columns.Add("Дата", "Дата");
-            dataGridView1.Columns.Add("Средний пробег за сезон", "Средний пробег за сезон");
-            dataGridView1.Columns.Add("Сезон", "Сезон");
-            dataGridView1.Columns.Add("Максимальный пробег за сезон", "Максимальный пробег за сезон");
-            dataGridView1.Columns.Add("Средний пробег по сезонам", "Средний пробег по сезонам");
             
-            if(textBox1.Text == "")
+            // Создание объекта Word
+            Application1 Word = new Word.Application();
+            Word.Document doc = null;
+            doc = Word.Documents.Open(@"E:\User\Мой Excel файл.docx"); // initialize the doc object
+                                                                       // Открытие файла Word
+
+            string text = doc.Content.Text.Split(' ')[0];// индекс пробега
+            string text1 = doc.Content.Text.Split('@')[1];// индекс даты
+                                                           //после зациклить индексы
+
+            DateTime date = DateTime.MinValue; // инициализация переменной даты
+            string[] words = text1.Split(' '); // разделение текста на слова
+            foreach (string word1 in words)
             {
-                MessageBox.Show("Напишите количеств пройденных киллометров.");
+                if (DateTime.TryParseExact(word1, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out date))
+                {
+                    // если удалось успешно преобразовать строку в дату, выходим из цикла
+                    MessageBox.Show (date.ToString()); //  выводит дату
+                    break;
+                }
+            }
+            doc.Close(true);
+           
+            Excel.Application excel = new Excel.Application();
+            Excel.Workbook workbook = excel.Workbooks.Open(@"E:\User\Мой Excel файл.xlsx");
+            Excel.Worksheet worksheet = workbook.Sheets[1];
+            worksheet.Name = "Данные";
+            worksheet.Cells[1, 1] = "Дата";
+            worksheet.Cells[1, 2] = "Средний пробег за сезон";
+            worksheet.Cells[1, 3] = "Сезон";
+            worksheet.Cells[2, 3] = "Зима";
+            worksheet.Cells[3, 3] = "Весна";
+            worksheet.Cells[4, 3] = "Лето";
+            worksheet.Cells[5, 3] = "Осень";
+            worksheet.Cells[1, 4] = "Максимальный пробег за сезон";
+            worksheet.Cells[1, 5] = "Средний пробег по сезонам";
+            workbook.Save();
+            double currentMileage = double.Parse(text); // пробег
+            double coef = date.Month; // коофицент
+            workbook.Save();
+            
+            if (text == "")
+            {
+                MessageBox.Show("Напишите количеств пройденных километров.");
                 return;
             }
-            DateTime startDate = dateTimePicker1.Value; // выбрать дату
-            double currentMileage = double.Parse(textBox1.Text); // пробег
-            DateTime selectedDate = dateTimePicker1.Value;
-            double coef = selectedDate.Month; // коофицент
-
-
             double winterMileage = 0, springMileage = 0, summerMileage = 0, autumnMileage = 0; // по пробегу месяца
             int winterDays = 0, springDays = 0, summerDays = 0, autumnDays = 0; // по дням
+
+            // Заполняем ячейки A2 и B2 начальными значениями
+            worksheet.Cells[2, 1] = date.ToShortDateString();
+            worksheet.Cells[2, 2] = currentMileage.ToString();
+            int row = 2; // номер строки для заполнения
 
             while (currentMileage < Probeg)
             {
                 double distance = coef * 31; // 31 - коофицент каждого цесяца
                 currentMileage += distance;
 
-                dataGridView1.Rows.Add(startDate.ToShortDateString(), currentMileage.ToString());
+                worksheet.Cells[row, 1] = date.ToShortDateString();
+                worksheet.Cells[row, 2] = currentMileage.ToString();
+                row++;
 
-                switch (startDate.Month)
+                switch (date.Month)
                 {
                     case 12:
                     case 1:
@@ -133,7 +142,7 @@ namespace WinFormsApp4
                         break;
                 }
 
-                startDate = startDate.AddMonths(1);
+                date = date.AddMonths(1);
 
             }
             double winterAverage = winterMileage / winterDays;
@@ -179,43 +188,51 @@ namespace WinFormsApp4
             {
                 autumnMax = autumnAverage * 31;
             }
+            int columnCount = worksheet.UsedRange.Columns.Count;
+            MessageBox.Show(columnCount.ToString());
 
-            dataGridView1.Rows[0].Cells[2].Value = "Зима".ToString();
-            dataGridView1.Rows[1].Cells[2].Value = "Весна".ToString();
-            dataGridView1.Rows[2].Cells[2].Value = "Лето".ToString();
-            dataGridView1.Rows[3].Cells[2].Value = "осень".ToString();
-            
-            dataGridView1.Rows[0].Cells[3].Value = winterAverage.ToString();
-            dataGridView1.Rows[0].Cells[4].Value = winterMax.ToString();
+            worksheet.Cells[2, 4] = winterAverage;
+            worksheet.Cells[2, 5] = winterMax;
 
-            dataGridView1.Rows[1].Cells[3].Value = springAverage.ToString();
-            dataGridView1.Rows[1].Cells[4].Value = springMax.ToString();
+            worksheet.Cells[3, 4] = springAverage;
+            worksheet.Cells[3, 5] = springMax;
 
-            dataGridView1.Rows[2].Cells[3].Value = summerAverage.ToString();
-            dataGridView1.Rows[2].Cells[4].Value = summerMax.ToString();
+            worksheet.Cells[4,4] = summerAverage;
+            worksheet.Cells[4,5] = summerMax;
 
-            dataGridView1.Rows[3].Cells[3].Value = autumnAverage.ToString();
-            dataGridView1.Rows[3].Cells[4].Value = autumnMax.ToString();
-            
+            worksheet.Cells[5,4] = autumnAverage;
+            worksheet.Cells[5,5] = autumnMax;
 
-            double lastValue = double.Parse(dataGridView1.Rows[dataGridView1.Rows.Count - 2].Cells[1].Value.ToString());
-            double prevValue = double.Parse(dataGridView1.Rows[dataGridView1.Rows.Count - 3].Cells[1].Value.ToString());
+
+            //double lastValue = double.Parse(worksheet.Rows[worksheet.Rows.Count - 2].Cells[1].Value.ToString());
+            //double prevValue = double.Parse(worksheet.Rows[worksheet.Rows.Count - 3].Cells[1].Value.ToString());
+            //double difference = lastValue - prevValue;
+
+            double lastValue = double.Parse(worksheet.Cells[worksheet.Rows.Count, 2].Value.ToString());
+            double prevValue = double.Parse(worksheet.Cells[worksheet.Rows.Count - 1, 2].Value.ToString());
             double difference = lastValue - prevValue;
-            ExportToExcel();
+
+            MessageBox.Show(difference.ToString());
+            excel.Visible = true;
+            string path = @"E:\User\Мой Excel файл.xlsx";
+            workbook.SaveAs(path);
+            MessageBox.Show("Файл сохранён!", "Сохранение файла", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            workbook.Close(true);
+            excel.Quit();
+
             if (currentMileage > Probeg)
             {
-                string message = $"Внимание! Пора сделать тех. обслуживание машины! Пробег превысил {Probeg}, за последнее время было пройдено {difference} км.";
+                string message = $"Внимание! Пора сделать тех. обслуживание машины! Пробег превысил {Probeg}, за последнее время было пройдено {600} км.";
                 bot.SendTextMessageAsync("1083342768", message);
-                
+
             }
             else
             {
-                string message = $"Скоро нужно будет сделать техническое обслуживание машины! Пробег машины достигает {Probeg}, за последний месяц пройдено {difference} км.";
+                string message = $"Скоро нужно будет сделать техническое обслуживание машины! Пробег машины достигает {Probeg}, за последний месяц пройдено {600} км.";
                 bot.SendTextMessageAsync("1083342768", message);
-                
+
             }
         }
-
     }
 
 }

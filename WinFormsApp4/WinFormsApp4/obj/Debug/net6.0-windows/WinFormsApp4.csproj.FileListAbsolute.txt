@@ -26,3 +26,4 @@ C:\Users\User\source\repos\WinFormsApp4\WinFormsApp4\bin\Debug\net6.0-windows\ru
 C:\Users\User\source\repos\WinFormsApp4\WinFormsApp4\obj\Debug\net6.0-windows\WinFormsApp4.csproj.CopyComplete
 C:\Users\User\source\repos\WinFormsApp4\WinFormsApp4\obj\Debug\net6.0-windows\Interop.Microsoft.Office.Interop.Excel.dll
 C:\Users\User\source\repos\WinFormsApp4\WinFormsApp4\obj\Debug\net6.0-windows\WinFormsApp4.csproj.ResolveComReference.cache
+C:\Users\User\source\repos\WinFormsApp4\WinFormsApp4\obj\Debug\net6.0-windows\Interop.Microsoft.Office.Interop.Word.dll
